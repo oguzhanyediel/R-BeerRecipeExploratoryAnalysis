@@ -167,19 +167,3 @@ mid_scale_feats = recipeData[,c('Color', 'BoilTime', 'Efficiency', 'PrimaryTemp'
 high_scale_feats = recipeData[,c('IBU', 'Size(L)',  'BoilSize')]
 
 boxplot(vlow_scale_feats, value~variable)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
