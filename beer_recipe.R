@@ -166,4 +166,44 @@ low_scale_feats = recipeData[,c('ABV', 'MashThickness')]
 mid_scale_feats = recipeData[,c('Color', 'BoilTime', 'Efficiency', 'PrimaryTemp')]
 high_scale_feats = recipeData[,c('IBU', 'Size(L)',  'BoilSize')]
 
-boxplot(vlow_scale_feats, value~variable)
+boxplot(vlow_scale_feats, value~variable, 
+        col='purple', 
+        main='Boxplots of very low scale features in Beer Recipe dataset',
+        horizontal = TRUE,
+        notch = TRUE)
+
+boxplot(low_scale_feats, value~variable, 
+        col=c('blue', 'green'), 
+        main='Boxplots of low scale features in Beer Recipe dataset',
+        horizontal = TRUE)
+
+boxplot(mid_scale_feats, value~variable, 
+        col=c('blue', 'black', 'red', 'purple'), 
+        main='Boxplots of medium scale features in Beer Recipe dataset',
+        horizontal = TRUE)
+
+boxplot(high_scale_feats, value~variable, 
+        main='Boxplots of high scale features in Beer Recipe dataset',
+        horizontal = TRUE)
+
+flog.info("There are %s different styles of beer", 
+          length(unique(recipeData$StyleID)))
+
+top10_style = c(style_cnt_grp$Style[1:10])
+style_cnt_other = style_cnt_grp[,c("Style", "Count")]
+style_cnt_other$Style <- ifelse(style_cnt_other$Style %in% top10_style,
+                                style_cnt_other$Style,
+                                'Other')  
+style_cnt_other = 
+  style_cnt_other %>% 
+  group_by(Style) %>% 
+  summarise(Count = sum(Count))
+
+style_cnt_other$Ratio <- 
+  round((style_cnt_other$Count / as.numeric(nrow(recipeData))), 3) * 100
+
+lbls = paste(style_cnt_other$Style, " ", style_cnt_other$Ratio,"%",sep="")
+pie(style_cnt_other$Count, 
+    labels = lbls,
+    col = rainbow(length(style_cnt_other$Count)),
+    main = 'Ratio of styles across dataset')
