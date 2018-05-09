@@ -229,3 +229,26 @@ flog.info("Please, wait a little
 pairs(pairplot_df[2:6])
 ggpairs(pairplot_df[2:6]) 
 flog.info("ggpairs is really explanatory graphic function!")
+
+style_cnt_grp = style_cnt_grp[order(-style_cnt_grp$Count),]
+top5_style <- style_cnt_grp[0:5,]$Style
+if(style_cnt_grp[0:5,]$Style %in% pairplot_df[["Style"]]){
+  top5_style_df <- pairplot_df[pairplot_df$Style %in% top5_style,]
+}
+
+ggplot(top5_style_df, aes(x=Style, y=OG_sg, fill=Style)) +
+  geom_violin()
+
+ggplot(top5_style_df, aes(x=Style, y=OG_sg)) +
+  geom_violin() +
+  geom_boxplot(width=0.1)
+
+recipeData$Top5_Style <-
+  ifelse(recipeData$Style == top5_style[1], top5_style[1],
+         ifelse(recipeData$Style == top5_style[2], top5_style[2],
+                ifelse(recipeData$Style == top5_style[3], top5_style[3],
+                       ifelse(recipeData$Style == top5_style[4], top5_style[4],
+                              ifelse(recipeData$Style == top5_style[5], top5_style[5], 
+                                     'Other')))))
+
+View(recipeData[,c("Style","Top5_Style")])
