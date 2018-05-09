@@ -1,5 +1,5 @@
-used_packages <- c("Amelia", "dplyr", "ggplot2", "futile.logger", "readr", 
-                   "reshape", "reshape2")
+used_packages <- c("Amelia", "dplyr", "futile.logger", "GGally", "ggplot2", 
+                   "lattice", "readr", "reshape", "reshape2")
 lapply(used_packages, require, character.only = TRUE)
 
 recipeData <- read_csv(
@@ -207,3 +207,25 @@ pie(style_cnt_other$Count,
     labels = lbls,
     col = rainbow(length(style_cnt_other$Count)),
     main = 'Ratio of styles across dataset')
+
+op <- par(cex = 0.85)
+axis(2, at = 0:5, labels = 0:5)
+barplot(style_cnt_other$Ratio,
+        names.arg = style_cnt_other$Style,
+        main = 'Ratio of styles across dataset',
+        horiz = TRUE,
+        ylab = 'Style',
+        col = terrain.colors(n=length(style_cnt_other$Style)),
+        legend = lbls,
+        args.legend = list(x="bottomright"))
+
+# Other Options for barplot color:
+# col = rainbow(length(style_cnt_other$Style))
+# col = heat.colors(n=length(style_cnt_other$Style))
+
+pairplot_df = recipeData[,c("Style", "OG_sg", "FG_sg", "ABV", "IBU", "Color")]
+flog.info("Please, wait a little 
+          until the following graphic functions are finished")
+pairs(pairplot_df[2:6])
+ggpairs(pairplot_df[2:6]) 
+flog.info("ggpairs is really explanatory graphic function!")
