@@ -1,5 +1,6 @@
-used_packages <- c("Amelia", "dplyr", "futile.logger", "GGally", "ggplot2", 
-                   "lattice", "readr", "reshape", "reshape2")
+used_packages <- c("Amelia", "caret", "dplyr", "e1071", "futile.logger", 
+                   "GGally", "ggplot2", "HH", "lattice", "randomForest", 
+                   "readr", "reshape", "reshape2")
 lapply(used_packages, require, character.only = TRUE)
 
 recipeData <- read_csv(
@@ -252,3 +253,59 @@ recipeData$Top5_Style <-
                                      'Other')))))
 
 View(recipeData[,c("Style","Top5_Style")])
+
+clf_data <- recipeData[,c('StyleID','OG_sg','FG_sg','ABV','IBU','Color',
+                          'SugarScale','BrewMethod','Size(L)', 'BoilSize', 
+                          'BoilTime', 'BoilGravity_sg', 'Efficiency', 
+                          'MashThickness', 'PitchRate', 'PrimaryTemp')]
+
+# Label encoding
+sugarscale_encode <- c(unique(clf_data$SugarScale))
+clf_data$SugarScale <- as.numeric(factor(clf_data$SugarScale, 
+                                       levels = sugarscale_encode))
+
+brewmethod_encode <- c(unique(clf_data$BrewMethod))
+clf_data$BrewMethod <- as.numeric(factor(clf_data$BrewMethod, 
+                                         levels = brewmethod_encode))
+
+# Fill null values
+clf_data <- 
+  clf_data %>%
+    mutate_all(~ifelse(is.na(.), median(., na.rm = TRUE), .))
+
+#cross-validate
+sample.ind <- sample(2, nrow(clf_data), replace = T, prob=c(0.7,0.3))
+
+clf_data.dev<-clf_data[sample.ind==1,]
+clf_data.val<-clf_data[sample.ind==2,]
+
+# simple prediction with Linear Regression
+clf_data.lm <- lm(clf_data.dev$StyleID ~ ., data = clf_data.dev)
+clf_data.lm
+summary(clf_data.lm)
+
+prediction <- predict(clf_data.lm, clf_data.val, interval = "predict")
+summary(prediction)
+
+# Multiple R-squared = 1 – SSE/SST where:
+SSE <- sum((clf_data.val$StyleID - as.data.frame(prediction)$fit) ^ 2)
+SST <- sum((clf_data.val$StyleID - mean(clf_data.val$StyleID)) ^ 2)
+1 - SSE/SST
+
+# Define the control
+dataset <- clf_data[1:1000,]
+x <- dataset[,2:16]
+y <- dataset[,1]
+trControl <- trainControl(method = "repeatedcv",
+                          number = 10,
+                          repeats=3)
+set.seed(7)
+mtry <- sqrt(ncol(x))
+tunegrid <- expand.grid(.mtry=mtry)
+
+# Create model with default paramters
+rf_default <- train(StyleID~., data=dataset, method="rf", 
+                    tuneGrid=tunegrid, trControl=trControl)
+
+# Print the results
+print(rf_default)
